@@ -29,6 +29,7 @@ test_that("compilation failure", {
                c("command", "error", "error", "context", "warning", "error",
                  "note", "error", "context", "error", "error", "command"))
   format(ret)
+  expect_output(print(ret), "Error 1")
 })
 
 test_that("unclassifiable output", {

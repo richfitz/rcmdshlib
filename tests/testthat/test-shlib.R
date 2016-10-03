@@ -27,3 +27,18 @@ test_that("compilation failure", {
   expect_error(shlib(path),
                "Error compiling source")
 })
+
+test_that("different output", {
+  res <- shlib("test.c", output = "foo.dylib",
+               preclean = TRUE, clean = TRUE, verbose = FALSE)
+  expect_equal(res$dll, "foo.dylib")
+  expect_true(file.exists(res$dll))
+  expect_false(file.exists(paste0("test", .Platform$dylib.ext)))
+})
+
+test_that("debug dll", {
+  if (!is_windows()) {
+    expect_error(shlib("test.c", debug = TRUE, preclean = TRUE),
+                 "The 'debug' option is valid only on Windows")
+  }
+})

@@ -44,3 +44,7 @@ common_dirname <- function(filenames) {
 
   list(dirname = dirname, filenames = filenames)
 }
+
+is_windows <- function() {
+  .Platform$OS.type == "windows"
+}

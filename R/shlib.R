@@ -24,7 +24,7 @@ shlib <- function(filenames, verbose = TRUE,
   ##
   ## From the look of something (was it Gabor's docs) we might be able
   ## to pass -L and -l directly through though.
-  if (debug && .PlatForm$OS.type != "windows") {
+  if (debug && !is_windows()) {
     stop("The 'debug' option is valid only on Windows")
   }
 
@@ -38,8 +38,11 @@ shlib <- function(filenames, verbose = TRUE,
     dll <- paste0(tools::file_path_sans_ext(filenames[[1L]]),
                   .Platform$dynlib.ext)
   } else {
-    assert_scalar_character(output)
-    dll <- output
+    if (length(output) == 1L && is.character(output) && !is.na(output)) {
+      dll <- output
+    } else {
+      stop("'output' must be a scalar character")
+    }
   }
 
   opts <- c(character(0),
@@ -102,7 +105,7 @@ capture_shlib <- function() {
   continue <- FALSE
   continue_type <- ""
 
-  styles <- compiler_output_styles()
+  styles <- compiler_output_styles(crayon::has_color())
 
   add <- function(x) {
     if (last_type == "MISSING") {
@@ -167,8 +170,8 @@ output_compress <- function(x) {
 ## pick out file/line/col, etc.
 ##
 ## For text only output it would b nice to use a 1 char prefix perhaps.
-compiler_output_styles <- function(use_colour = TRUE) {
-  if (use_colour && crayon::has_color()) {
+compiler_output_styles <- function(use_colour) {
+  if (use_colour) {
     cols <- c(command = "bold",
               error = "red",
               warning = "yellow",
