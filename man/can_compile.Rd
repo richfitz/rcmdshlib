@@ -17,7 +17,7 @@ A logical scalar
 \description{
 Test if compilation appears possible.  This tries compiling a
 trivial C program with \code{R CMD SHLIB} (using
-\code{\link{rcmdshlib}}).  Results are cached between runs within
+\code{\link{shlib}}).  Results are cached between runs within
 a session so this should be fast to rely on.
 }
 \details{

@@ -1,2 +1,7 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^Makefile$
+^rcmdshlib_.*\.tar\.gz$
+^ignore$
+^tests/testthat/.*\.o$
+^tests/testthat/.*\.so$

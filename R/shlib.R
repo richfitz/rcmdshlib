@@ -63,6 +63,7 @@ shlib <- function(filenames, verbose = TRUE,
   ## callr::rcmd_safe("SHLIB", args, callback = callback)
   ## dat <- collector$get()
 
+  Sys.setenv(R_TESTS="")
   output <- suppressWarnings(system2(file.path(R.home(), "bin", "R"), args,
                                      stdout=TRUE, stderr=TRUE))
 
