@@ -6,7 +6,7 @@ Maintainer: Rich FitzJohn <rich.fitzjohn@gmail.com>
 Description: What the package does (one paragraph).
 License: MIT + file LICENSE
 Imports:
-    callr
+    crayon
 Suggests:
     testthat
 RoxygenNote: 5.0.1
