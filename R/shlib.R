@@ -67,7 +67,7 @@ shlib <- function(filenames, verbose = TRUE,
   output <- suppressWarnings(system2(file.path(R.home(), "bin", "R"), args,
                                      stdout=TRUE, stderr=TRUE))
 
-  invisible(list(output = handle_compiler_output(output, verbose),
+  invisible(list(output = handle_compiler_output(output, verbose, use_colour),
                  dll = dll))
 }
 
@@ -217,7 +217,7 @@ compiler_output_styles <- function(use_colour) {
 }
 
 ##' @export
-format.compiler_output <- function(x, ..., use_colour = TRUE) {
+format.compiler_output <- function(x, ..., use_colour = NULL) {
   styles <- compiler_output_styles(use_colour)
 
   type <- x$type
@@ -241,9 +241,10 @@ format.compiler_output <- function(x, ..., use_colour = TRUE) {
 }
 
 ##' @export
-print.compiler_output <- function(x, ..., use_colour = TRUE) {
+print.compiler_output <- function(x, ..., use_colour = NULL) {
   str <- format.compiler_output(x, use_colour = use_colour)
   cat(paste0(str, "\n"))
+  invisible(x)
 }
 
 classify_compiler_output <- function(txt, use_colour = FALSE) {
