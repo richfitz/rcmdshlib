@@ -29,10 +29,7 @@ shlib <- function(filenames, verbose = TRUE,
   }
 
   ## Determine the common root (not sure if this is 100% needed)
-  dn <- common_dirname(filenames)
-  owd <- setwd(dn$dirname)
-  on.exit(setwd(owd))
-  filenames <- dn$filenames
+  assert_files_exist(filenames)
 
   if (is.null(output)) {
     dll <- paste0(tools::file_path_sans_ext(filenames[[1L]]),

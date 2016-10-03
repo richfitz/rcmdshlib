@@ -36,6 +36,21 @@ test_that("different output", {
   expect_false(file.exists(paste0("test", .Platform$dylib.ext)))
 })
 
+test_that("Invalid output", {
+  expect_error(shlib("test.c", output = 1),
+               "'output' must be a scalar character")
+  expect_error(shlib("test.c", output = NA_character_),
+               "'output' must be a scalar character")
+  expect_error(shlib("test.c", output = c("a", "b")),
+               "'output' must be a scalar character")
+})
+
+test_that("missing input files", {
+  expect_error(shlib("file1.c"), "File does not exist: file1.c")
+  expect_error(shlib(c("file1.c", "file2.c")),
+                     "Files do not exist: file1.c, file2.c")
+})
+
 test_that("debug dll", {
   if (!is_windows()) {
     expect_error(shlib("test.c", debug = TRUE, preclean = TRUE),
