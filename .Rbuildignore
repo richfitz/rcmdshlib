@@ -5,3 +5,5 @@
 ^ignore$
 ^tests/testthat/.*\.o$
 ^tests/testthat/.*\.so$
+^\.travis\.yml$
+^appveyor\.yml$
