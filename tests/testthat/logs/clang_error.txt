@@ -1,0 +1,10 @@
+gcc -I/Library/Frameworks/R.framework/Resources/include -DNDEBUG  -I/usr/local/include -I/usr/local/include/freetype2 -I/opt/X11/include    -fPIC  -g -O0 -Wall -Wextra -pedantic -Wno-unused-parameter -c /var/folders/3z/86tv450j7kb4w5y4wpxj6d5r0000gn/T//RtmpuE2AV5/file86d72421b352.c -o /var/folders/3z/86tv450j7kb4w5y4wpxj6d5r0000gn/T//RtmpuE2AV5/file86d72421b352.o
+/var/folders/3z/86tv450j7kb4w5y4wpxj6d5r0000gn/T//RtmpuE2AV5/file86d72421b352.c:1:1: error: unknown type name 'this'
+this is a test
+^
+/var/folders/3z/86tv450j7kb4w5y4wpxj6d5r0000gn/T//RtmpuE2AV5/file86d72421b352.c:1:8: error: expected ';' after top level declarator
+this is a test
+       ^
+       ;
+2 errors generated.
+make: *** [/var/folders/3z/86tv450j7kb4w5y4wpxj6d5r0000gn/T//RtmpuE2AV5/file86d72421b352.o] Error 1

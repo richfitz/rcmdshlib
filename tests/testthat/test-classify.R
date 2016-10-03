@@ -16,6 +16,12 @@ test_that("parse gcc warnings", {
   format(ret, use_colour = TRUE)
 })
 
+test_that("parse clang error", {
+  ret <- classify_compiler_output(readLines("logs/clang_error.txt"))
+  expect_equal(ret$type,
+               c("command", "error", "error", "command"))
+  format(ret)
+})
 
 test_that("compilation warning", {
   expect_warning(

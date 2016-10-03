@@ -93,6 +93,9 @@ handle_compiler_output <- function(output, verbose, use_colour = FALSE) {
   output
 }
 
+## NOTE: In clang, context around an error does not come with any
+## leading whitespace and there is a little bit saying "n errors
+## generated" which will be lumped in with this.
 compiler_classifier <- function(use_colour) {
   types <- collector()
   values <- collector()
@@ -102,7 +105,7 @@ compiler_classifier <- function(use_colour) {
   ## These probably need tweaking depending on the compiler:
   re_command <- sprintf("^(%s|make:)\\s", compiler)
   re_context <- '^([[:alnum:]._]+): (In|At) ([[:alnum:]]+)\\s.*:$'
-  re_info <- '^([[:alnum:]._]+):([0-9]+)(:[0-9]+)?: (warning|error|note):.*$'
+  re_info <- '^([[:alnum:]/._]+):([0-9]+)(:[0-9]+)?: (warning|error|note):.*$'
   re_continue <- '^\\s+'
   continue <- FALSE
   continue_type <- ""
@@ -125,7 +128,7 @@ compiler_classifier <- function(use_colour) {
       type <- sub(re_info, "\\4", x)
       continue <<- TRUE
       continue_type <<- type
-    } else if (continue && grepl(re_continue, x)) {
+    } else if (continue || grepl(re_continue, x)) {
       type <- "continue"
     } else {
       type <- "unknown"
@@ -200,7 +203,8 @@ compiler_output_styles <- function(use_colour) {
                 context = "I",
                 error_continue = ".",
                 warning_continue = ".",
-                note_continue = ".")
+                note_continue = ".",
+                unknown = " ")
     f <- function(prefix) {
       fmt <- sprintf("[%s] %%s", prefix)
       function(x) {
