@@ -142,17 +142,8 @@ compiler_classifier <- function(use_colour) {
   get <- function() {
     output_compress(list(type = types$get(), value = values$get()))
   }
-  show <- function(x) {
-    add(x)
-    type <- if (continue) paste0(continue_type, "_continue") else last_type
-    s <- styles[[type]]
-    if (!is.null(s)) {
-      x <- s(x)
-    }
-    message(x)
-  }
 
-  list(add = add, get = get, show = show)
+  list(add = add, get = get)
 }
 
 output_compress <- function(x) {
