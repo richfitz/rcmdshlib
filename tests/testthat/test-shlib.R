@@ -29,11 +29,16 @@ test_that("compilation failure", {
 })
 
 test_that("different output", {
+  so <- paste0("test", .Platform$dynlib.ext)
+  if (file.exists(so)) {
+    file.remove(so)
+  }
   res <- shlib("test.c", output = "foo.dylib",
                preclean = TRUE, clean = TRUE, verbose = FALSE)
   expect_equal(res$dll, "foo.dylib")
   expect_true(file.exists(res$dll))
   expect_false(file.exists(paste0("test", .Platform$dylib.ext)))
+  file.remove("foo.dylib")
 })
 
 test_that("Invalid output", {

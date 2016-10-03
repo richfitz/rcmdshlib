@@ -3,3 +3,4 @@
 .RData
 tests/testthat/*.o
 tests/testthat/*.so
+tests/testthat/foo.dylib
