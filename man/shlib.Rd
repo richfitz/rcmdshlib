@@ -5,7 +5,7 @@
 \title{Compile shared library}
 \usage{
 shlib(filenames, verbose = TRUE, output = NULL, clean = FALSE,
-  preclean = FALSE, dry_run = FALSE, debug = FALSE)
+  preclean = FALSE, dry_run = FALSE, debug = FALSE, use_colour = NULL)
 }
 \arguments{
 \item{filenames}{Vector of filenames}
@@ -16,17 +16,23 @@ shlib(filenames, verbose = TRUE, output = NULL, clean = FALSE,
 \code{SHLIB} with \code{--output} -- by default the name of the
 first file is used).}
 
-\item{clean}{Clean intermediate targets (passed to
-\code{SHLIB} as \code{--clean})}
+\item{clean}{Clean intermediate targets (passed to \code{SHLIB} as
+\code{--clean})}
 
-\item{preclean}{Clean intermediate targets before running (passed to
-\code{SHLIB} as \code{--clean})}
+\item{preclean}{Clean intermediate targets before running (passed
+to \code{SHLIB} as \code{--clean})}
 
 \item{dry_run}{Don't run anything, but print commands (passed to
 \code{SHLIB} as \code{--dry-run})}
 
 \item{debug}{Create a debug dll (windows only; passed to
 \code{SHLIB} as \code{--debug})}
+
+\item{use_colour}{Use ANSI escape colours (via the \code{crayon}
+package) if on a ANSI compatibile terminal (does not support
+Rstudio, Rgui or Rterm).  If \code{NULL} (the default) then
+colour will be used where support is detected by
+\code{crayon::has_color()}}
 }
 \description{
 Compile a shared library using \code{R CMD SHLIB}.

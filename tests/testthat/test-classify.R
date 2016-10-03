@@ -12,7 +12,8 @@ test_that("parse gcc warnings", {
   expect_equal(ret$type,
                c("command", "context", "warning",
                  "context", "warning", "command"))
-  format(ret)
+  format(ret, use_colour = FALSE)
+  format(ret, use_colour = TRUE)
 })
 
 
