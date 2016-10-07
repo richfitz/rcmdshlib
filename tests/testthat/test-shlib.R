@@ -26,6 +26,10 @@ test_that("compilation failure", {
   writeLines("this is a test", path)
   expect_error(shlib(path),
                "Error compiling source")
+
+  res <- shlib(path, fail_on_error = FALSE, quiet = TRUE, verbose = FALSE)
+  expect_is(res$output, "compiler_output")
+  expect_identical(res$dll, NA_character_)
 })
 
 test_that("different output", {

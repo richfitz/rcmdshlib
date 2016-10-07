@@ -3,6 +3,11 @@
 ##' @title Compile shared library
 ##' @param filenames Vector of filenames
 ##' @param verbose Be verbose (print compiler output to screen)
+##' @param quiet Be quiet (don't print information about warnings or
+##'   errors).  Note that \code{quiet = TRUE, verbose = TRUE} is a
+##'   legitimite options set; quiet controls suppressing printing
+##'   output on warning/error, while \code{verbose} controls printing
+##'   output on normal operation.
 ##' @param output Name to use for the file output (passed to
 ##'   \code{SHLIB} with \code{--output} -- by default the name of the
 ##'   first file is used).
@@ -14,16 +19,24 @@
 ##'   \code{SHLIB} as \code{--dry-run})
 ##' @param debug Create a debug dll (windows only; passed to
 ##'   \code{SHLIB} as \code{--debug})
+##' @param fail_on_error If an error in compilation is thrown, throw
+##'   an error (TRUE by default).  If set to \code{FALSE}, then the
+##'   compilation output will be returned (the \code{dll} element will
+##'   be set to \code{NA}).
 ##' @param use_colour Use ANSI escape colours (via the \code{crayon}
 ##'   package) if on a ANSI compatibile terminal (does not support
 ##'   Rstudio, Rgui or Rterm).  If \code{NULL} (the default) then
 ##'   colour will be used where support is detected by
 ##'   \code{crayon::has_color()}
+##' @return A list of length 2, with elements \code{dll} - the path to
+##'   the generated shared library, and \code{output} with the
+##'   compilation output.
 ##' @export
 ##' @author Rich FitzJohn
-shlib <- function(filenames, verbose = TRUE,
+shlib <- function(filenames, verbose = TRUE, quiet = FALSE,
                   output = NULL, clean = FALSE, preclean = FALSE,
-                  dry_run = FALSE, debug = FALSE, use_colour = NULL) {
+                  dry_run = FALSE, debug = FALSE,
+                  fail_on_error = TRUE, use_colour = NULL) {
   ## TODO: Allow setting include paths here explicitly.  This requires
   ## a bit of faff to get through without using a Makevars file.
   ##
@@ -57,40 +70,57 @@ shlib <- function(filenames, verbose = TRUE,
   args <- c("CMD", "SHLIB", filenames, opts)
 
   ## This approach requires that callr is tweaked to allow capture of
-  ## standard output.
-  ## collector <- compiler_classifier(use_colour)
-  ## callback <- if (verbose || dry_run) collector$show else collector$add
-  ## callr::rcmd_safe("SHLIB", args, callback = callback)
-  ## dat <- collector$get()
+  ## standard error
+  ##   collector <- compiler_classifier(use_colour)
+  ##   callback <- if (verbose || dry_run) collector$show else collector$add
+  ##   callr::rcmd_safe("SHLIB", args, callback = callback)
+  ##   dat <- collector$get()
 
   Sys.setenv(R_TESTS="")
   output <- suppressWarnings(system2(file.path(R.home(), "bin", "R"), args,
                                      stdout=TRUE, stderr=TRUE))
 
-  invisible(list(output = handle_compiler_output(output, verbose, use_colour),
+  if (!fail_on_error) {
+    status <- attr(output, "status")
+    if (!is.null(status) && status != 0L) {
+      dll <- NA_character_
+    }
+  }
+
+  invisible(list(output = handle_compiler_output(output, verbose, quiet,
+                                                 fail_on_error, use_colour),
                  dll = dll))
 }
 
 ## NOTE: This separation exists primarily to facilitate testing.
-handle_compiler_output <- function(output, verbose, use_colour = FALSE) {
+handle_compiler_output <- function(output, verbose, quiet,
+                                   fail_on_error = TRUE, use_colour = FALSE) {
   status <- attr(output, "status")
   error <- !is.null(status) && status != 0L
   output <- classify_compiler_output(output)
 
-  if (error) {
+  if (error && fail_on_error) {
     message(format(output, use_colour = use_colour))
     stop("Error compiling source", call. = FALSE)
   }
 
   w <- output$type == "warning"
-  if (any(w)) {
-    str <- ngettext(sum(w),
-                    "There was 1 compiler warning:\n",
-                    sprintf("There were %d compiler warnings:\n", sum(w)))
-    warning(str, format(output, use_colour = use_colour), call. = FALSE)
+  if (!quiet && (error || any(w))) {
+    fmt1 <- "There was %d compiler %s"
+    fmt2 <- "There were %d compiler %ss"
+    nw <- sum(w)
+    ne <- sum(output$type == "error")
+    message(format(output, use_colour = use_colour))
+    if (ne > 0) {
+      warning(sprintf(ngettext(ne, fmt1, fmt2), ne, "error"))
+    }
+    if (nw > 0) {
+      warning(sprintf(ngettext(nw, fmt1, fmt2), nw, "warning"))
+    }
   } else if (verbose) {
     message(format(output, use_colour = use_colour))
   }
+
   output
 }
 
