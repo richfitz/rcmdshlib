@@ -33,7 +33,6 @@ can_compile <- function(verbose = FALSE, skip_cache = FALSE) {
     on.exit(unlink(tmp, recursive = TRUE))
     file <- file.path(tmp, "hello.c")
     writeLines("#include <R.h>", file)
-    dest <- if (verbose) "" else FALSE
     can_compile <- TRUE
     tryCatch(shlib(file, verbose = verbose),
              error = function(e) can_compile <<- FALSE)

@@ -76,9 +76,9 @@ shlib <- function(filenames, verbose = TRUE, quiet = FALSE,
   ##   callr::rcmd_safe("SHLIB", args, callback = callback)
   ##   dat <- collector$get()
 
-  Sys.setenv(R_TESTS="")
+  Sys.setenv(R_TESTS = "")
   output <- suppressWarnings(system2(file.path(R.home(), "bin", "R"), args,
-                                     stdout=TRUE, stderr=TRUE))
+                                     stdout = TRUE, stderr = TRUE))
 
   if (!fail_on_error) {
     status <- attr(output, "status")
@@ -135,13 +135,10 @@ compiler_classifier <- function(use_colour) {
 
   ## These probably need tweaking depending on the compiler:
   re_command <- sprintf("^(%s|make:)\\s", compiler)
-  re_context <- '^([[:alnum:]._]+): (In|At) ([[:alnum:]]+)\\s.*:$'
-  re_info <- '^([[:alnum:]/._]+):([0-9]+)(:[0-9]+)?: (warning|error|note):.*$'
-  re_continue <- '^\\s+'
+  re_context <- "^([[:alnum:]._]+): (In|At) ([[:alnum:]]+)\\s.*:$"
+  re_info <- "^([[:alnum:]/._]+):([0-9]+)(:[0-9]+)?: (warning|error|note):.*$"
+  re_continue <- "^\\s+"
   continue <- FALSE
-  continue_type <- ""
-
-  styles <- compiler_output_styles(use_colour)
 
   add <- function(x) {
     if (last_type == "MISSING") {
@@ -158,7 +155,6 @@ compiler_classifier <- function(use_colour) {
     } else if (grepl(re_info, x)) {
       type <- sub(re_info, "\\4", x)
       continue <<- TRUE
-      continue_type <<- type
     } else if (continue || grepl(re_continue, x)) {
       type <- "continue"
     } else {

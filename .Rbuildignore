@@ -7,3 +7,4 @@
 ^tests/testthat/.*\.so$
 ^\.travis\.yml$
 ^appveyor\.yml$
+^\.lintr$
