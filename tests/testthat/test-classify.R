@@ -86,3 +86,10 @@ test_that("unclassifiable output", {
   expect_equal(res$value, c(cmp$value, extra))
   format(res)
 })
+
+test_that("roundtrip", {
+  for (f in dir("logs", full.names = TRUE)) {
+    txt <- readLines("logs/gcc_warnings.txt")
+    expect_equal(as.character(classify_compiler_output(txt)), txt)
+  }
+})

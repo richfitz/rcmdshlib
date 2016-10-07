@@ -268,6 +268,11 @@ print.compiler_output <- function(x, ..., use_colour = NULL) {
   invisible(x)
 }
 
+##' @export
+as.character.compiler_output <- function(x, ...) {
+  unlist(x$value)
+}
+
 classify_compiler_output <- function(txt, use_colour = FALSE) {
   f <- compiler_classifier(use_colour)
   for (i in txt) {
