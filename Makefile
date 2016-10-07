@@ -51,9 +51,9 @@ README.md: README.Rmd
 coverage:
 	Rscript -e 'covr::shine(covr::package_coverage(quiet=FALSE))'
 
-vignettes/odin.Rmd: vignettes/src/odin.R
+vignettes/rcmdshlib.Rmd: vignettes/src/rcmdshlib.R
 	${RSCRIPT} -e 'library(sowsear); sowsear("$<", output="$@")'
-vignettes: vignettes/odin.Rmd
+vignettes: vignettes/rcmdshlib.Rmd
 	${RSCRIPT} -e 'library(methods); devtools::build_vignettes()'
 
 # No real targets!
