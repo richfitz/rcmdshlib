@@ -81,3 +81,10 @@ file_error <- prepare(c("#include <R.h>",
 res2 <- rcmdshlib::shlib(file_error, verbose = TRUE)
 
 ## This is thrown as an R error so can be detected with `try`, etc.
+
+## The `shlib` function has options for controlling how compiler
+## output, warnings and errors are translated to R conditions:
+
+## * `fail_on_error` can be set to `FALSE` to prevent `shlib` throwing on error
+## * `quiet` can be set to `TRUE` to prevent converting compiler
+##   warnings to R warnings
