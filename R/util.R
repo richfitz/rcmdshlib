@@ -22,3 +22,7 @@ assert_files_exist <- function(filenames) {
          paste(filenames[err], collapse = ", "))
   }
 }
+
+`%||%` <- function(a, b) {
+  if (is.null(a)) b else a
+}
