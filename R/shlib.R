@@ -48,6 +48,11 @@ shlib <- function(filenames, verbose = TRUE, quiet = FALSE,
 
   ## Determine the common root (not sure if this is 100% needed)
   assert_files_exist(filenames)
+  if (is_windows()) {
+    ## This is needed or gcc can't find the paths, as backslashes get
+    ## lost along the way.
+    filenames <- gsub("\\", "/", filenames, fixed = TRUE)
+  }
 
   if (is.null(output)) {
     dll <- paste0(tools::file_path_sans_ext(filenames[[1L]]),
