@@ -4,6 +4,7 @@ test_that("hello", {
   code <- '#include <R.h>\nvoid test() {Rprintf("Hello world\\n");}'
   writeLines(code, "hello.c")
   res <- shlib("hello.c")
+  expect_true(res$success)
   expect_is(res$output, "compiler_output")
   expect_equal(res$dll, paste0("hello", .Platform$dynlib.ext))
 
@@ -27,22 +28,24 @@ test_that("compilation failure", {
   expect_error(shlib(path),
                "Error compiling source")
 
-  res <- shlib(path, fail_on_error = FALSE, quiet = TRUE, verbose = FALSE)
+  res <- shlib(path, stop_on_error = FALSE, warn_on_warning = FALSE,
+               verbose = FALSE)
+  expect_false(res$success)
   expect_is(res$output, "compiler_output")
   expect_identical(res$dll, NA_character_)
 })
 
 test_that("different output", {
-  so <- paste0("test", .Platform$dynlib.ext)
-  if (file.exists(so)) {
-    file.remove(so)
-  }
-  res <- shlib("test.c", output = "foo.dylib",
+  filename <- hello_c(tempfile(fileext = ".c"))
+  base <- tools::file_path_sans_ext(filename)
+  default_dll <- paste0(base, .Platform$dynlib.ext)
+  dest <- paste0(base, ".dylib")
+  res <- shlib("test.c", output = dest,
                preclean = TRUE, clean = TRUE, verbose = FALSE)
-  expect_equal(res$dll, "foo.dylib")
+  expect_equal(res$dll, dest)
   expect_true(file.exists(res$dll))
-  expect_false(file.exists(paste0("test", .Platform$dylib.ext)))
-  file.remove("foo.dylib")
+  expect_false(file.exists(default_dll))
+  file.remove(c(filename, dest))
 })
 
 test_that("Invalid output", {

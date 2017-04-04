@@ -4,20 +4,14 @@
 \alias{shlib}
 \title{Compile shared library}
 \usage{
-shlib(filenames, verbose = TRUE, quiet = FALSE, output = NULL,
-  clean = FALSE, preclean = FALSE, dry_run = FALSE, debug = FALSE,
-  fail_on_error = TRUE, use_colour = NULL)
+shlib(filenames, verbose = TRUE, output = NULL, clean = FALSE,
+  preclean = FALSE, dry_run = FALSE, debug = FALSE,
+  stop_on_error = TRUE, warn_on_warning = TRUE, use_colour = NULL)
 }
 \arguments{
 \item{filenames}{Vector of filenames}
 
 \item{verbose}{Be verbose (print compiler output to screen)}
-
-\item{quiet}{Be quiet (don't print information about warnings or
-errors).  Note that \code{quiet = TRUE, verbose = TRUE} is a
-legitimite options set; quiet controls suppressing printing
-output on warning/error, while \code{verbose} controls printing
-output on normal operation.}
 
 \item{output}{Name to use for the file output (passed to
 \code{SHLIB} with \code{--output} -- by default the name of the
@@ -35,10 +29,13 @@ to \code{SHLIB} as \code{--clean})}
 \item{debug}{Create a debug dll (windows only; passed to
 \code{SHLIB} as \code{--debug})}
 
-\item{fail_on_error}{If an error in compilation is thrown, throw
+\item{stop_on_error}{If an error in compilation is thrown, throw
 an error (TRUE by default).  If set to \code{FALSE}, then the
 compilation output will be returned (the \code{dll} element will
 be set to \code{NA}).}
+
+\item{warn_on_warning}{If a the compiler returns a warning, issue
+an R warning (TRUE by default).}
 
 \item{use_colour}{Use ANSI escape colours (via the \code{crayon}
 package) if on a ANSI compatibile terminal (does not support
@@ -50,9 +47,19 @@ colour will be used where support is detected by
 A list of length 2, with elements \code{dll} - the path to
   the generated shared library, and \code{output} with the
   compilation output.
+
+Invisibly, A list with three elements: \code{success} - a
+  logical indicating if the command was successful (this can only
+  be \code{FALSE} if \code{stop_on_error} is \code{FALSE}),
+  \code{output} - an object of class \code{compiler_output}
+  containing compiler output and \code{dll} - a path to the
+  created shared library, or \code{NA_character_} if the command
+  failed.
 }
 \description{
-Compile a shared library using \code{R CMD SHLIB}.
+Compile a shared library using \code{R CMD SHLIB}.  Options exist
+for converting the compiler output to R messages, warnings and
+errors.
 }
 \author{
 Rich FitzJohn

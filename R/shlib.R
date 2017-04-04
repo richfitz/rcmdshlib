@@ -1,13 +1,10 @@
-##' Compile a shared library using \code{R CMD SHLIB}.
+##' Compile a shared library using \code{R CMD SHLIB}.  Options exist
+##' for converting the compiler output to R messages, warnings and
+##' errors.
 ##'
 ##' @title Compile shared library
 ##' @param filenames Vector of filenames
 ##' @param verbose Be verbose (print compiler output to screen)
-##' @param quiet Be quiet (don't print information about warnings or
-##'   errors).  Note that \code{quiet = TRUE, verbose = TRUE} is a
-##'   legitimite options set; quiet controls suppressing printing
-##'   output on warning/error, while \code{verbose} controls printing
-##'   output on normal operation.
 ##' @param output Name to use for the file output (passed to
 ##'   \code{SHLIB} with \code{--output} -- by default the name of the
 ##'   first file is used).
@@ -19,10 +16,12 @@
 ##'   \code{SHLIB} as \code{--dry-run})
 ##' @param debug Create a debug dll (windows only; passed to
 ##'   \code{SHLIB} as \code{--debug})
-##' @param fail_on_error If an error in compilation is thrown, throw
+##' @param stop_on_error If an error in compilation is thrown, throw
 ##'   an error (TRUE by default).  If set to \code{FALSE}, then the
 ##'   compilation output will be returned (the \code{dll} element will
 ##'   be set to \code{NA}).
+##' @param warn_on_warning If a the compiler returns a warning, issue
+##'   an R warning (TRUE by default).
 ##' @param use_colour Use ANSI escape colours (via the \code{crayon}
 ##'   package) if on a ANSI compatibile terminal (does not support
 ##'   Rstudio, Rgui or Rterm).  If \code{NULL} (the default) then
@@ -31,12 +30,21 @@
 ##' @return A list of length 2, with elements \code{dll} - the path to
 ##'   the generated shared library, and \code{output} with the
 ##'   compilation output.
+##'
+##' @return Invisibly, A list with three elements: \code{success} - a
+##'   logical indicating if the command was successful (this can only
+##'   be \code{FALSE} if \code{stop_on_error} is \code{FALSE}),
+##'   \code{output} - an object of class \code{compiler_output}
+##'   containing compiler output and \code{dll} - a path to the
+##'   created shared library, or \code{NA_character_} if the command
+##'   failed.
 ##' @export
 ##' @author Rich FitzJohn
-shlib <- function(filenames, verbose = TRUE, quiet = FALSE,
+shlib <- function(filenames, verbose = TRUE,
                   output = NULL, clean = FALSE, preclean = FALSE,
                   dry_run = FALSE, debug = FALSE,
-                  fail_on_error = TRUE, use_colour = NULL) {
+                  stop_on_error = TRUE, warn_on_warning = TRUE,
+                  use_colour = NULL) {
   ## TODO: Allow setting include paths here explicitly.  This requires
   ## a bit of faff to get through without using a Makevars file.
   ##
@@ -85,48 +93,43 @@ shlib <- function(filenames, verbose = TRUE, quiet = FALSE,
   output <- suppressWarnings(system2(file.path(R.home(), "bin", "R"), args,
                                      stdout = TRUE, stderr = TRUE))
 
-  if (!fail_on_error) {
-    status <- attr(output, "status")
-    if (!is.null(status) && status != 0L) {
-      dll <- NA_character_
-    }
+  status <- attr(output, "status")
+  success <- is.null(status) || status == 0L
+  if (!success) {
+    dll <- NA_character_
   }
 
-  invisible(list(output = handle_compiler_output(output, verbose, quiet,
-                                                 fail_on_error, use_colour),
+  output <- handle_compiler_output(output, verbose, stop_on_error,
+                                   warn_on_warning, use_colour)
+
+  invisible(list(success = success,
+                 output = output,
                  dll = dll))
 }
 
 ## NOTE: This separation exists primarily to facilitate testing.
-handle_compiler_output <- function(output, verbose, quiet,
-                                   fail_on_error = TRUE, use_colour = FALSE) {
+handle_compiler_output <- function(output, verbose,
+                                   stop_on_error = TRUE,
+                                   warn_on_warning = TRUE,
+                                   use_colour = FALSE) {
   status <- attr(output, "status")
   error <- !is.null(status) && status != 0L
   output <- classify_compiler_output(output)
+  nw <- sum(output$type == "warning")
 
-  if (error && fail_on_error) {
+  if (error && stop_on_error) {
     message(format(output, use_colour = use_colour))
     stop("Error compiling source", call. = FALSE)
-  }
-
-  w <- output$type == "warning"
-  if (!quiet && (error || any(w))) {
-    fmt1 <- "There was %d compiler %s"
-    fmt2 <- "There were %d compiler %ss"
-    nw <- sum(w)
-    ne <- sum(output$type == "error")
+  } else if (nw > 0 && warn_on_warning) {
     message(format(output, use_colour = use_colour))
-    if (ne > 0) {
-      warning(sprintf(ngettext(ne, fmt1, fmt2), ne, "error"))
-    }
-    if (nw > 0) {
-      warning(sprintf(ngettext(nw, fmt1, fmt2), nw, "warning"))
-    }
+    fmt1 <- "There was %d compiler warning"
+    fmt2 <- "There were %d compiler warnings"
+    warning(sprintf(ngettext(nw, fmt1, fmt2), nw, "warning"), call. = FALSE)
   } else if (verbose) {
     message(format(output, use_colour = use_colour))
   }
 
-  output
+  invisible(output)
 }
 
 ## NOTE: In clang, context around an error does not come with any

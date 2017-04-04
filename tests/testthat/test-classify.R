@@ -24,17 +24,27 @@ test_that("parse clang error", {
 })
 
 test_that("compilation warning", {
+  ## By default, the compilation warning comes through as a warning:
   expect_warning(
     handle_compiler_output(readLines("logs/gcc_warnings.txt"),
-                           verbose = FALSE, quiet = FALSE, use_colour = FALSE),
+                                verbose = TRUE, use_colour = FALSE),
     "There were 2 compiler warnings")
+  ## This happens even when verbose is FALSE
   expect_warning(
     handle_compiler_output(readLines("logs/gcc_warnings.txt"),
-                           verbose = TRUE, quiet = FALSE, use_colour = FALSE),
+                                verbose = FALSE, use_colour = FALSE),
     "There were 2 compiler warnings")
+  ## Quieten things down:
   expect_silent(
     handle_compiler_output(readLines("logs/gcc_warnings.txt"),
-                           verbose = FALSE, quiet = TRUE, use_colour = FALSE))
+                           verbose = FALSE, warn_on_warning = FALSE,
+                           use_colour = FALSE))
+  ## Or print the warning but don't trigger it:
+  expect_message(
+    handle_compiler_output(readLines("logs/gcc_warnings.txt"),
+                           verbose = TRUE, warn_on_warning = FALSE,
+                           use_colour = FALSE),
+    "\\[W\\]")
 })
 
 test_that("compilation failure", {
@@ -49,30 +59,30 @@ test_that("compilation failure", {
   output <- readLines("logs/gcc_error.txt")
   attr(output, "status") <- 1
 
+  ## Let errors and warnings through:
   expect_silent(
-    handle_compiler_output(output, verbose = FALSE, quiet = TRUE,
-                           fail_on_error = FALSE, use_colour = FALSE))
+    handle_compiler_output(output, verbose = FALSE,
+                           warn_on_warning = FALSE, stop_on_error = FALSE,
+                           use_colour = FALSE))
+
+  ## Stop on error:
   expect_error(suppressMessages(
-    handle_compiler_output(output, verbose = FALSE, quiet = TRUE,
-                           fail_on_error = TRUE, use_colour = FALSE)),
+    handle_compiler_output(output, verbose = FALSE,
+                           stop_on_error = TRUE, use_colour = FALSE)),
     "Error compiling source")
   expect_message(try(
-    handle_compiler_output(output, verbose = FALSE, quiet = TRUE,
-                           fail_on_error = TRUE, use_colour = FALSE),
+    handle_compiler_output(output, verbose = FALSE,
+                           stop_on_error = TRUE, use_colour = FALSE),
     silent = TRUE),
     "unknown type name")
 
-  expect_warning(suppressMessages(
-    handle_compiler_output(output, verbose = FALSE, quiet = FALSE,
-                           fail_on_error = FALSE, use_colour = FALSE)),
-    "There were 6 compiler errors")
-  expect_warning(suppressMessages(
-    handle_compiler_output(output, verbose = FALSE, quiet = FALSE,
-                           fail_on_error = FALSE, use_colour = FALSE)),
-    "There was 1 compiler warning")
-  expect_message(suppressWarnings(
-    handle_compiler_output(output, verbose = FALSE, quiet = FALSE,
-                           fail_on_error = FALSE, use_colour = FALSE)),
+  ## Let it all through:
+  expect_silent(
+    handle_compiler_output(output, verbose = FALSE, warn_on_warning = FALSE,
+                           stop_on_error = FALSE, use_colour = FALSE))
+  expect_message(
+    handle_compiler_output(output, verbose = TRUE, warn_on_warning = FALSE,
+                           stop_on_error = FALSE, use_colour = FALSE),
     "unknown type name")
 })
 
