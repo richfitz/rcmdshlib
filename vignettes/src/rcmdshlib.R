@@ -85,6 +85,9 @@ res2 <- rcmdshlib::shlib(file_error, verbose = TRUE)
 ## The `shlib` function has options for controlling how compiler
 ## output, warnings and errors are translated to R conditions:
 
-## * `fail_on_error` can be set to `FALSE` to prevent `shlib` throwing on error
-## * `quiet` can be set to `TRUE` to prevent converting compiler
-##   warnings to R warnings
+## * `stop_on_error` can be set to `FALSE` to prevent `shlib` throwing on
+##    error
+## * `warn_on_warning` can be set to `FALSE` to prevent `shlib` raising
+##    warnings following compilation warnings
+## * `verbose` can be set to `FALSE` to prevent printing of any compilation
+##   output
