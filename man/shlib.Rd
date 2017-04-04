@@ -15,7 +15,8 @@ shlib(filenames, verbose = TRUE, output = NULL, clean = FALSE,
 
 \item{output}{Name to use for the file output (passed to
 \code{SHLIB} with \code{--output} -- by default the name of the
-first file is used).}
+first file is used with the extension changed to
+\code{.Platform$dynlib.ext}).}
 
 \item{clean}{Clean intermediate targets (passed to \code{SHLIB} as
 \code{--clean})}

@@ -40,7 +40,7 @@ test_that("different output", {
   base <- tools::file_path_sans_ext(filename)
   default_dll <- paste0(base, .Platform$dynlib.ext)
   dest <- paste0(base, ".dylib")
-  res <- shlib("test.c", output = dest,
+  res <- shlib(filename, output = dest,
                preclean = TRUE, clean = TRUE, verbose = FALSE)
   expect_equal(res$dll, dest)
   expect_true(file.exists(res$dll))
@@ -68,4 +68,17 @@ test_that("debug dll", {
     expect_error(shlib("test.c", debug = TRUE, preclean = TRUE),
                  "The 'debug' option is valid only on Windows")
   }
+})
+
+test_that("shlib_filenames changes slashes on windows (only)", {
+  testthat::with_mock(
+    `rcmdshlib:::is_windows` = function() TRUE,
+    `base::file.exists` = function(...) TRUE,
+    expect_equal(shlib_filenames("foo\\bar.c", NULL)$filenames,
+                 "foo/bar.c"))
+  testthat::with_mock(
+    `rcmdshlib:::is_windows` = function() FALSE,
+    `base::file.exists` = function(...) TRUE,
+    expect_equal(shlib_filenames("foo\\bar.c", NULL)$filenames,
+                 "foo\\bar.c"))
 })

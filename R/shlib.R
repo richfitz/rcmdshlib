@@ -7,7 +7,8 @@
 ##' @param verbose Be verbose (print compiler output to screen)
 ##' @param output Name to use for the file output (passed to
 ##'   \code{SHLIB} with \code{--output} -- by default the name of the
-##'   first file is used).
+##'   first file is used with the extension changed to
+##'   \code{.Platform$dynlib.ext}).
 ##' @param clean Clean intermediate targets (passed to \code{SHLIB} as
 ##'   \code{--clean})
 ##' @param preclean Clean intermediate targets before running (passed
@@ -54,33 +55,16 @@ shlib <- function(filenames, verbose = TRUE,
     stop("The 'debug' option is valid only on Windows")
   }
 
-  ## Determine the common root (not sure if this is 100% needed)
-  assert_files_exist(filenames)
-  if (is_windows()) {
-    ## This is needed or gcc can't find the paths, as backslashes get
-    ## lost along the way.
-    filenames <- gsub("\\", "/", filenames, fixed = TRUE)
-  }
-
-  if (is.null(output)) {
-    dll <- paste0(tools::file_path_sans_ext(filenames[[1L]]),
-                  .Platform$dynlib.ext)
-  } else {
-    if (length(output) == 1L && is.character(output) && !is.na(output)) {
-      dll <- output
-    } else {
-      stop("'output' must be a scalar character")
-    }
-  }
+  dat <- shlib_filenames(filenames, output)
 
   opts <- c(character(0),
-            c("--output", dll),
+            c("--output", dat$dll),
             if (clean) "--clean",
             if (preclean) "--preclean",
             if (dry_run) "--dry-run",
             if (debug) "--debug")
 
-  args <- c("CMD", "SHLIB", filenames, opts)
+  args <- c("CMD", "SHLIB", dat$filenames, opts)
 
   ## This approach requires that callr is tweaked to allow capture of
   ## standard error
@@ -95,12 +79,9 @@ shlib <- function(filenames, verbose = TRUE,
 
   status <- attr(output, "status")
   success <- is.null(status) || status == 0L
-  if (!success) {
-    dll <- NA_character_
-  }
-
   output <- handle_compiler_output(output, verbose, stop_on_error,
                                    warn_on_warning, use_colour)
+  dll <- if (success) dat$dll else NA_character_
 
   invisible(list(success = success,
                  output = output,
@@ -289,4 +270,26 @@ classify_compiler_output <- function(txt, use_colour = FALSE) {
     f$add(i)
   }
   f$get()
+}
+
+## Mostly to help with testing:
+shlib_filenames <- function(filenames, output) {
+  assert_files_exist(filenames)
+  if (is_windows()) {
+    ## This is needed or gcc can't find the paths, as backslashes get
+    ## lost along the way.
+    filenames <- gsub("\\", "/", filenames, fixed = TRUE)
+  }
+
+  if (is.null(output)) {
+    dll <- paste0(tools::file_path_sans_ext(filenames[[1L]]),
+                  .Platform$dynlib.ext)
+  } else {
+    if (length(output) == 1L && is.character(output) && !is.na(output)) {
+      dll <- output
+    } else {
+      stop("'output' must be a scalar character")
+    }
+  }
+  list(filenames = filenames, dll = dll)
 }
