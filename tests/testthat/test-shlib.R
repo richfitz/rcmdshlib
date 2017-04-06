@@ -199,6 +199,14 @@ test_that("Invalid chdir input", {
                "Invalid input for 'chdir'")
 })
 
+test_that("invalid output extension", {
+  path <- tempfile2()
+  dir.create(path)
+  filename <- hello_c(file.path(path, "hello.c"))
+  expect_error(shlib_filenames(filename, "hello.txt", FALSE),
+               "Invalid input for 'chdir'")
+})
+
 test_that("change directory on compilation", {
   path <- tempfile2()
   dir.create(path)

@@ -38,3 +38,8 @@ is_true <- function(x) {
 is_false <- function(x) {
   identical(as.vector(x), FALSE)
 }
+
+ends_with <- function(string, end) {
+  len <- nchar(string)
+  substr(string, len - nchar(end) + 1L, len) == end
+}

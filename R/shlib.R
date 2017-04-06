@@ -307,6 +307,9 @@ shlib_filenames <- function(filenames, output, chdir) {
     } else {
       stop("'output' must be a scalar character")
     }
+    if (!ends_with(output, .Platform$dynlib.ext)) {
+      stop("'output' must end with ", .Platform$dynlib.ext)
+    }
     ## Check that the output directory is sane; this only has to be
     ## done when output is explicitly given because otherwise it's
     ## derived from the first filename (which must be in an existing
