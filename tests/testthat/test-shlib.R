@@ -94,14 +94,14 @@ test_that("single filename with chdir = TRUE", {
   expect_equal(res$wd, path)
 
   ## If output is given, and in a different directory, it is not remapped
-  dll <- tempfile2()
+  dll <- tempfile2(fileext = .Platform$dynlib.ext)
   res <- shlib_filenames(filename, dll, chdir = TRUE)
   expect_equal(res$filenames, basename(filename))
   expect_equal(res$dll, dll)
   expect_equal(res$wd, path)
 
   ## If output is given, and in the same diretory, it is remapped
-  dll <- tempfile2(tmpdir = path)
+  dll <- tempfile2(tmpdir = path, fileext = .Platform$dynlib.ext)
   res <- shlib_filenames(filename, dll, chdir = TRUE)
   expect_equal(res$filenames, basename(filename))
   expect_equal(res$dll, basename(dll))
@@ -120,14 +120,14 @@ test_that("multiple filenames with chdir = TRUE", {
   expect_equal(res$wd, path)
 
   ## If output is given, and in a different directory, it is not remapped
-  dll <- tempfile2()
+  dll <- tempfile2(fileext = .Platform$dynlib.ext)
   res <- shlib_filenames(filenames, dll, chdir = TRUE)
   expect_equal(res$filenames, basename(filenames))
   expect_equal(res$dll, dll)
   expect_equal(res$wd, path)
 
   ## If output is given, and in the same diretory, it is remapped
-  dll <- tempfile2(tmpdir = path)
+  dll <- tempfile2(tmpdir = path, fileext = .Platform$dynlib.ext)
   res <- shlib_filenames(filenames, dll, chdir = TRUE)
   expect_equal(res$filenames, basename(filenames))
   expect_equal(res$dll, basename(dll))
@@ -146,14 +146,14 @@ test_that("multiple filenames with given chdir", {
   expect_equal(res$wd, tempdir2())
 
   ## If output is given, and in a different directory, it is not remapped
-  dll <- tempfile2(tmpdir = path)
+  dll <- tempfile2(tmpdir = path, fileext = .Platform$dynlib.ext)
   res <- shlib_filenames(filenames, dll, chdir = tempdir2())
   expect_equal(res$filenames, filenames)
   expect_equal(res$dll, dll)
   expect_equal(res$wd, tempdir2())
 
   ## If output is given, and in the same diretory, it is remapped
-  dll <- tempfile2()
+  dll <- tempfile2(fileext = .Platform$dynlib.ext)
   res <- shlib_filenames(filenames, dll, chdir = tempdir2())
   expect_equal(res$filenames, filenames)
   expect_equal(res$dll, basename(dll))
@@ -175,7 +175,7 @@ test_that("output path must be existing directory if given", {
   path <- tempfile2()
   dir.create(path)
   filename <- hello_c(file.path(path, "hello.c"))
-  out <- file.path(tempfile2(), "out")
+  out <- file.path(tempfile2(), paste0("out", .Platform$dynlib.ext))
   expect_error(shlib_filenames(filename, out, FALSE),
                "does not exist")
   writeLines("", dirname(out))
@@ -204,7 +204,7 @@ test_that("invalid output extension", {
   dir.create(path)
   filename <- hello_c(file.path(path, "hello.c"))
   expect_error(shlib_filenames(filename, "hello.txt", FALSE),
-               "Invalid input for 'chdir'")
+               "'output' must end with")
 })
 
 test_that("change directory on compilation", {
