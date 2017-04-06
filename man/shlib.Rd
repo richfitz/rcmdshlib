@@ -6,7 +6,8 @@
 \usage{
 shlib(filenames, verbose = TRUE, output = NULL, clean = FALSE,
   preclean = FALSE, dry_run = FALSE, debug = FALSE,
-  stop_on_error = TRUE, warn_on_warning = TRUE, use_colour = NULL)
+  stop_on_error = TRUE, warn_on_warning = TRUE, chdir = FALSE,
+  use_colour = NULL)
 }
 \arguments{
 \item{filenames}{Vector of filenames}
@@ -38,6 +39,14 @@ be set to \code{NA}).}
 \item{warn_on_warning}{If a the compiler returns a warning, issue
 an R warning (TRUE by default).}
 
+\item{chdir}{One of \code{FALSE} (the default) indicating that the
+working directory will not be changed, \code{TRUE} indicating
+that the working directory should be set to the directory
+containing source files, or a character string indicating the
+directory to set immediately prior to compilation.  If
+\code{TRUE}, then all files listed in \code{filenames} must be
+in the same directory.}
+
 \item{use_colour}{Use ANSI escape colours (via the \code{crayon}
 package) if on a ANSI compatibile terminal (does not support
 Rstudio, Rgui or Rterm).  If \code{NULL} (the default) then
@@ -45,17 +54,14 @@ colour will be used where support is detected by
 \code{crayon::has_color()}}
 }
 \value{
-A list of length 2, with elements \code{dll} - the path to
-  the generated shared library, and \code{output} with the
-  compilation output.
-
 Invisibly, A list with three elements: \code{success} - a
   logical indicating if the command was successful (this can only
   be \code{FALSE} if \code{stop_on_error} is \code{FALSE}),
   \code{output} - an object of class \code{compiler_output}
-  containing compiler output and \code{dll} - a path to the
+  containing compiler output and \code{dll} - the path to the
   created shared library, or \code{NA_character_} if the command
-  failed.
+  failed.  If the command changed directory then the normalized
+  (and therefore absolute) path to the dll is returned.
 }
 \description{
 Compile a shared library using \code{R CMD SHLIB}.  Options exist

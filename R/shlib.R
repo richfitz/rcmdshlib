@@ -23,29 +23,33 @@
 ##'   be set to \code{NA}).
 ##' @param warn_on_warning If a the compiler returns a warning, issue
 ##'   an R warning (TRUE by default).
+##' @param chdir One of \code{FALSE} (the default) indicating that the
+##'   working directory will not be changed, \code{TRUE} indicating
+##'   that the working directory should be set to the directory
+##'   containing source files, or a character string indicating the
+##'   directory to set immediately prior to compilation.  If
+##'   \code{TRUE}, then all files listed in \code{filenames} must be
+##'   in the same directory.
 ##' @param use_colour Use ANSI escape colours (via the \code{crayon}
 ##'   package) if on a ANSI compatibile terminal (does not support
 ##'   Rstudio, Rgui or Rterm).  If \code{NULL} (the default) then
 ##'   colour will be used where support is detected by
 ##'   \code{crayon::has_color()}
-##' @return A list of length 2, with elements \code{dll} - the path to
-##'   the generated shared library, and \code{output} with the
-##'   compilation output.
-##'
 ##' @return Invisibly, A list with three elements: \code{success} - a
 ##'   logical indicating if the command was successful (this can only
 ##'   be \code{FALSE} if \code{stop_on_error} is \code{FALSE}),
 ##'   \code{output} - an object of class \code{compiler_output}
-##'   containing compiler output and \code{dll} - a path to the
+##'   containing compiler output and \code{dll} - the path to the
 ##'   created shared library, or \code{NA_character_} if the command
-##'   failed.
+##'   failed.  If the command changed directory then the normalized
+##'   (and therefore absolute) path to the dll is returned.
 ##' @export
 ##' @author Rich FitzJohn
 shlib <- function(filenames, verbose = TRUE,
                   output = NULL, clean = FALSE, preclean = FALSE,
                   dry_run = FALSE, debug = FALSE,
                   stop_on_error = TRUE, warn_on_warning = TRUE,
-                  use_colour = NULL) {
+                  chdir = FALSE, use_colour = NULL) {
   ## TODO: Allow setting include paths here explicitly.  This requires
   ## a bit of faff to get through without using a Makevars file.
   ##
@@ -55,7 +59,7 @@ shlib <- function(filenames, verbose = TRUE,
     stop("The 'debug' option is valid only on Windows")
   }
 
-  dat <- shlib_filenames(filenames, output)
+  dat <- shlib_filenames(filenames, output, chdir)
 
   opts <- c(character(0),
             c("--output", dat$dll),
@@ -74,6 +78,13 @@ shlib <- function(filenames, verbose = TRUE,
   ##   dat <- collector$get()
 
   Sys.setenv(R_TESTS = "")
+  if (!is.null(dat$wd)) {
+    if (verbose) {
+      message(sprintf("Compiling in '%s'", dat$wd))
+    }
+    owd <- setwd(dat$wd)
+    on.exit(setwd(owd))
+  }
   output <- suppressWarnings(system2(file.path(R.home(), "bin", "R"), args,
                                      stdout = TRUE, stderr = TRUE))
 
@@ -81,7 +92,13 @@ shlib <- function(filenames, verbose = TRUE,
   success <- is.null(status) || status == 0L
   output <- handle_compiler_output(output, verbose, stop_on_error,
                                    warn_on_warning, use_colour)
-  dll <- if (success) dat$dll else NA_character_
+  if (!success) {
+    dll <- NA_character_
+  } else if (is.null(dat$wd)) {
+    dll <- dat$dll
+  } else {
+    dll <- normalizePath(dat$dll, mustWork = TRUE)
+  }
 
   invisible(list(success = success,
                  output = output,
@@ -273,7 +290,7 @@ classify_compiler_output <- function(txt, use_colour = FALSE) {
 }
 
 ## Mostly to help with testing:
-shlib_filenames <- function(filenames, output) {
+shlib_filenames <- function(filenames, output, chdir) {
   assert_files_exist(filenames)
   if (is_windows()) {
     ## This is needed or gcc can't find the paths, as backslashes get
@@ -290,6 +307,48 @@ shlib_filenames <- function(filenames, output) {
     } else {
       stop("'output' must be a scalar character")
     }
+    ## Check that the output directory is sane; this only has to be
+    ## done when output is explicitly given because otherwise it's
+    ## derived from the first filename (which must be in an existing
+    ## directory).
+    output_dir <- dirname(output)
+    if (!file.exists(output_dir)) {
+      stop(sprintf("output directory '%s' does not exist", output_dir))
+    } else if (!is_directory(output_dir)) {
+      stop(sprintf("output directory '%s' exists, but is not a directory",
+                   output_dir))
+    }
   }
-  list(filenames = filenames, dll = dll)
+
+  if (is.character(chdir) && length(chdir) == 1L) {
+    if (!is_directory(chdir)) {
+      stop("If given as a string, 'chdir' must be an existing directory")
+    }
+    wd <- chdir
+  } else if (is_true(chdir)) {
+    wd <- dirname(filenames)
+    if (length(filenames) > 1L) {
+      if (length(unique(wd)) > 1L) {
+        stop("All source files must be in same directory if chdir = TRUE")
+      }
+      wd <- wd[[1L]]
+    }
+  } else if (is_false(chdir)) {
+    wd <- NULL
+  } else {
+    stop("Invalid input for 'chdir'")
+  }
+
+  if (!is.null(wd)) {
+    ## It might be nice to use a common root here but that's going to
+    ## require pathr.
+    if (all(dirname(filenames) == wd)) {
+      filenames <- basename(filenames)
+    }
+    if (dirname(dll) == wd) {
+      dll <- basename(dll)
+    }
+  }
+
+  list(filenames = filenames, dll = dll, wd = wd)
 }

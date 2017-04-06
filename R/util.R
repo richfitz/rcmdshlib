@@ -26,3 +26,15 @@ assert_files_exist <- function(filenames) {
 `%||%` <- function(a, b) {
   if (is.null(a)) b else a
 }
+
+is_directory <- function(filename) {
+  res <- file.info(filename, extra_cols = FALSE)$isdir
+  res & !is.na(res)
+}
+
+is_true <- function(x) {
+  identical(as.vector(x), TRUE)
+}
+is_false <- function(x) {
+  identical(as.vector(x), FALSE)
+}
