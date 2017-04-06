@@ -39,7 +39,7 @@ test_that("different output", {
   filename <- hello_c(tempfile(fileext = ".c"))
   base <- tools::file_path_sans_ext(filename)
   default_dll <- paste0(base, .Platform$dynlib.ext)
-  dest <- paste0(base, ".dylib")
+  dest <- paste0("myoutput", .Platform$dynlib.ext)
   res <- shlib(filename, output = dest,
                preclean = TRUE, clean = TRUE, verbose = FALSE)
   expect_equal(res$dll, dest)
