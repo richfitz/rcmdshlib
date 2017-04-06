@@ -84,7 +84,7 @@ test_that("shlib_filenames changes slashes on windows (only)", {
 })
 
 test_that("single filename with chdir = TRUE", {
-  path <- tempfile()
+  path <- tempfile2()
   dir.create(path)
   filename <- hello_c(file.path(path, "hello.c"))
 
@@ -94,14 +94,14 @@ test_that("single filename with chdir = TRUE", {
   expect_equal(res$wd, path)
 
   ## If output is given, and in a different directory, it is not remapped
-  dll <- tempfile()
+  dll <- tempfile2()
   res <- shlib_filenames(filename, dll, chdir = TRUE)
   expect_equal(res$filenames, basename(filename))
   expect_equal(res$dll, dll)
   expect_equal(res$wd, path)
 
   ## If output is given, and in the same diretory, it is remapped
-  dll <- tempfile(tmpdir = path)
+  dll <- tempfile2(tmpdir = path)
   res <- shlib_filenames(filename, dll, chdir = TRUE)
   expect_equal(res$filenames, basename(filename))
   expect_equal(res$dll, basename(dll))
@@ -109,7 +109,7 @@ test_that("single filename with chdir = TRUE", {
 })
 
 test_that("multiple filenames with chdir = TRUE", {
-  path <- tempfile()
+  path <- tempfile2()
   dir.create(path)
   filenames <- c(hello_c(file.path(path, "file1.c")),
                  hello_c(file.path(path, "file2.c")))
@@ -120,14 +120,14 @@ test_that("multiple filenames with chdir = TRUE", {
   expect_equal(res$wd, path)
 
   ## If output is given, and in a different directory, it is not remapped
-  dll <- tempfile()
+  dll <- tempfile2()
   res <- shlib_filenames(filenames, dll, chdir = TRUE)
   expect_equal(res$filenames, basename(filenames))
   expect_equal(res$dll, dll)
   expect_equal(res$wd, path)
 
   ## If output is given, and in the same diretory, it is remapped
-  dll <- tempfile(tmpdir = path)
+  dll <- tempfile2(tmpdir = path)
   res <- shlib_filenames(filenames, dll, chdir = TRUE)
   expect_equal(res$filenames, basename(filenames))
   expect_equal(res$dll, basename(dll))
@@ -135,34 +135,34 @@ test_that("multiple filenames with chdir = TRUE", {
 })
 
 test_that("multiple filenames with given chdir", {
-  path <- tempfile()
+  path <- tempfile2()
   dir.create(path)
   filenames <- c(hello_c(file.path(path, "file1.c")),
                  hello_c(file.path(path, "file2.c")))
 
-  res <- shlib_filenames(filenames, NULL, chdir = tempdir())
+  res <- shlib_filenames(filenames, NULL, chdir = tempdir2())
   expect_equal(res$filenames, filenames)
   expect_equal(res$dll, file.path(path, paste0("file1", .Platform$dynlib.ext)))
-  expect_equal(res$wd, tempdir())
+  expect_equal(res$wd, tempdir2())
 
   ## If output is given, and in a different directory, it is not remapped
-  dll <- tempfile(tmpdir = path)
-  res <- shlib_filenames(filenames, dll, chdir = tempdir())
+  dll <- tempfile2(tmpdir = path)
+  res <- shlib_filenames(filenames, dll, chdir = tempdir2())
   expect_equal(res$filenames, filenames)
   expect_equal(res$dll, dll)
-  expect_equal(res$wd, tempdir())
+  expect_equal(res$wd, tempdir2())
 
   ## If output is given, and in the same diretory, it is remapped
-  dll <- tempfile()
-  res <- shlib_filenames(filenames, dll, chdir = tempdir())
+  dll <- tempfile2()
+  res <- shlib_filenames(filenames, dll, chdir = tempdir2())
   expect_equal(res$filenames, filenames)
   expect_equal(res$dll, basename(dll))
-  expect_equal(res$wd, tempdir())
+  expect_equal(res$wd, tempdir2())
 })
 
 test_that("with chdir = TRUE, files must have same path", {
-  path1 <- tempfile()
-  path2 <- tempfile()
+  path1 <- tempfile2()
+  path2 <- tempfile2()
   dir.create(path1)
   dir.create(path2)
   filenames <- c(hello_c(file.path(path1, "file1.c")),
@@ -172,10 +172,10 @@ test_that("with chdir = TRUE, files must have same path", {
 })
 
 test_that("output path must be existing directory if given", {
-  path <- tempfile()
+  path <- tempfile2()
   dir.create(path)
   filename <- hello_c(file.path(path, "hello.c"))
-  out <- file.path(tempfile(), "out")
+  out <- file.path(tempfile2(), "out")
   expect_error(shlib_filenames(filename, out, FALSE),
                "does not exist")
   writeLines("", dirname(out))
@@ -184,15 +184,15 @@ test_that("output path must be existing directory if given", {
 })
 
 test_that("chdir as string must exist", {
-  path <- tempfile()
+  path <- tempfile2()
   dir.create(path)
   filename <- hello_c(file.path(path, "hello.c"))
-  expect_error(shlib_filenames(filename, NULL, tempfile()),
+  expect_error(shlib_filenames(filename, NULL, tempfile2()),
                "'chdir' must be an existing directory")
 })
 
 test_that("Invalid chdir input", {
-  path <- tempfile()
+  path <- tempfile2()
   dir.create(path)
   filename <- hello_c(file.path(path, "hello.c"))
   expect_error(shlib_filenames(filename, NULL, 1),
@@ -200,7 +200,7 @@ test_that("Invalid chdir input", {
 })
 
 test_that("change directory on compilation", {
-  path <- tempfile()
+  path <- tempfile2()
   dir.create(path)
   owd <- getwd()
   filename <- hello_c(file.path(path, "hello.c"))

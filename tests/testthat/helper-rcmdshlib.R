@@ -3,3 +3,11 @@ hello_c <- function(filename = tempfile()) {
   writeLines(code, filename)
   filename
 }
+
+tempfile2 <- function(...) {
+  gsub("\\", "/", tempfile(...), fixed = TRUE)
+}
+
+tempdir2 <- function() {
+  gsub("\\", "/", tempdir(), fixed = TRUE)
+}
