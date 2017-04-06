@@ -32,7 +32,7 @@ prepare <- function(code) {
 ##   error
 ## * detection of compilation *warnings*, with conversion into R warnings
 ## * colour coded output on ANSI compatible terminals (via
-##   [crayon](https://github.com/gaborcsardi/crayon)
+##   [crayon](https://github.com/gaborcsardi/crayon))
 ## * an object that holds the results of compilation that can be inspected
 ##   later
 
