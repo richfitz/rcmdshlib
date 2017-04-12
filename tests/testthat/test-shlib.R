@@ -71,7 +71,7 @@ test_that("debug dll", {
 })
 
 test_that("shlib_filenames changes slashes on windows (only)", {
-  path <- hello_c(tempfile(fileext = ".c"))
+  path <- gsub("\\", "/", hello_c(tempfile(fileext = ".c")), fixed = TRUE)
   path2 <- gsub("/", "\\", path, fixed = TRUE)
 
   testthat::with_mock(
