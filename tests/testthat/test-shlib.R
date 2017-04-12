@@ -71,16 +71,21 @@ test_that("debug dll", {
 })
 
 test_that("shlib_filenames changes slashes on windows (only)", {
+  path <- hello_c(tempfile(fileext = ".c"))
+  path2 <- gsub("/", "\\", path, fixed = TRUE)
+
   testthat::with_mock(
     `rcmdshlib:::is_windows` = function() TRUE,
-    `base::file.exists` = function(...) TRUE,
-    expect_equal(shlib_filenames("foo\\bar.c", NULL, FALSE)$filenames,
-                 "foo/bar.c"))
+    `rcmdshlib::assert_files_exist` = function(...) NULL,
+    expect_equal(shlib_filenames(path2, NULL, FALSE)$filenames,
+                 path))
+
+  ## No path rewriting on non-windows systems:
   testthat::with_mock(
     `rcmdshlib:::is_windows` = function() FALSE,
-    `base::file.exists` = function(...) TRUE,
-    expect_equal(shlib_filenames("foo\\bar.c", NULL, FALSE)$filenames,
-                 "foo\\bar.c"))
+    `rcmdshlib::assert_files_exist` = function(...) NULL,
+    expect_equal(shlib_filenames(path2, NULL, FALSE)$filenames,
+                 path2))
 })
 
 test_that("single filename with chdir = TRUE", {
