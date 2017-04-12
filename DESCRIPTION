@@ -3,7 +3,7 @@ Title: Build Shared Libraries From R
 Version: 0.0.2
 Author: Rich FitzJohn
 Maintainer: Rich FitzJohn <rich.fitzjohn@gmail.com>
-Description: What the package does (one paragraph).
+Description: Compile a shared library for use with R.
 License: MIT + file LICENSE
 Imports:
     crayon
