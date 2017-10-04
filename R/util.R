@@ -1,4 +1,4 @@
-collector <- function(init=character(0)) {
+collector <- function(init = character(0)) {
   res <- init
   list(add = function(x, ...) res <<- c(res, sprintf(x, ...)),
        length = function(x) length(res), # used only in debugging below
