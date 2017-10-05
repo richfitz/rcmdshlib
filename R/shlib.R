@@ -35,16 +35,42 @@
 ##'   Rstudio, Rgui or Rterm).  If \code{NULL} (the default) then
 ##'   colour will be used where support is detected by
 ##'   \code{crayon::has_color()}
-##' @return Invisibly, A list with three elements: \code{success} - a
+##' @return Invisibly, A list with four elements: \code{success} - a
 ##'   logical indicating if the command was successful (this can only
 ##'   be \code{FALSE} if \code{stop_on_error} is \code{FALSE}),
 ##'   \code{output} - an object of class \code{compiler_output}
-##'   containing compiler output and \code{dll} - the path to the
-##'   created shared library, or \code{NA_character_} if the command
-##'   failed.  If the command changed directory then the normalized
-##'   (and therefore absolute) path to the dll is returned.
+##'   containing compiler output, \code{dll} - the path to the created
+##'   shared library, or \code{NA_character_} if the command failed,
+##'   and \code{base} - the dll name without leading path or extension
+##'   (suitable to use as the \code{PACKAGE} argument to
+##'   \code{.Call}).  If the command changed directory then the
+##'   normalized (and therefore absolute) path to the dll is returned.
 ##' @export
 ##' @author Rich FitzJohn
+##' @examples
+##' # A small piece of C code saved as add.c within a temporary directory:
+##' txt <- c("#include <R.h>",
+##'         "#include <Rinternals.h>",
+##'         "SEXP add2(SEXP a, SEXP b) {",
+##'         "  return ScalarReal(REAL(a)[0] + REAL(b)[0]);",
+##'         "}")
+##' path <- tempfile()
+##' dir.create(path)
+##' filename <- file.path(path, "add.c")
+##' writeLines(txt, filename)
+##'
+##' # Compile the object:
+##' res <- rcmdshlib::shlib(filename)
+##' res
+##'
+##' # Load it into R:
+##' dyn.load(res$dll)
+##'
+##' # And call it
+##' .Call("add2", pi, 1, PACKAGE = res$base)
+##' # Cleanup
+##' dyn.unload(res$dll)
+##' unlink(path, recursive = TRUE)
 shlib <- function(filenames, verbose = TRUE,
                   output = NULL, clean = FALSE, preclean = FALSE,
                   dry_run = FALSE, debug = FALSE,
@@ -85,37 +111,39 @@ shlib <- function(filenames, verbose = TRUE,
     owd <- setwd(dat$wd)
     on.exit(setwd(owd))
   }
-  output <- suppressWarnings(system2(file.path(R.home(), "bin", "R"), args,
-                                     stdout = TRUE, stderr = TRUE))
+  ## TODO: pass through the libraries here as well probably; I've done
+  ## that somewhere else and it's not too awful (context?)
+  res <- system3(file.path(R.home(), "bin", "R"), args)
 
-  status <- attr(output, "status")
-  success <- is.null(status) || status == 0L
-  output <- handle_compiler_output(output, verbose, stop_on_error,
+  status <- res$status
+  success <- res$success
+  output <- handle_compiler_output(res$output, success, verbose, stop_on_error,
                                    warn_on_warning, use_colour)
   if (!success) {
-    dll <- NA_character_
+    base <- dll <- NA_character_
   } else if (is.null(dat$wd)) {
     dll <- dat$dll
+    base <- dat$base
   } else {
     dll <- normalizePath(dat$dll, mustWork = TRUE)
+    base <- dat$base
   }
 
   invisible(list(success = success,
                  output = output,
-                 dll = dll))
+                 dll = dll,
+                 base = base))
 }
 
 ## NOTE: This separation exists primarily to facilitate testing.
-handle_compiler_output <- function(output, verbose,
+handle_compiler_output <- function(output, success, verbose,
                                    stop_on_error = TRUE,
                                    warn_on_warning = TRUE,
                                    use_colour = FALSE) {
-  status <- attr(output, "status")
-  error <- !is.null(status) && status != 0L
   output <- classify_compiler_output(output)
   nw <- sum(output$type == "warning")
 
-  if (error && stop_on_error) {
+  if (!success && stop_on_error) {
     message(format(output, use_colour = use_colour))
     stop("Error compiling source", call. = FALSE)
   } else if (nw > 0 && warn_on_warning) {
@@ -353,5 +381,6 @@ shlib_filenames <- function(filenames, output, chdir) {
     }
   }
 
-  list(filenames = filenames, dll = dll, wd = wd)
+  base <- tools::file_path_sans_ext(basename(dll))
+  list(filenames = filenames, dll = dll, wd = wd, base = base)
 }

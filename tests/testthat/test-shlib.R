@@ -7,6 +7,7 @@ test_that("hello", {
   expect_true(res$success)
   expect_is(res$output, "compiler_output")
   expect_equal(res$dll, paste0("hello", .Platform$dynlib.ext))
+  expect_identical(res$base, "hello")
 
   dyn.load(res$dll)
   expect_output(.C("test", "hello"), "Hello world")
@@ -33,6 +34,7 @@ test_that("compilation failure", {
   expect_false(res$success)
   expect_is(res$output, "compiler_output")
   expect_identical(res$dll, NA_character_)
+  expect_identical(res$base, NA_character_)
 })
 
 test_that("different output", {

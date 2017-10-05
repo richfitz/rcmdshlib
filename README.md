@@ -6,3 +6,5 @@
 [![codecov.io](https://codecov.io/github/richfitz/rcmdshlib/coverage.svg?branch=master)](https://codecov.io/github/richfitz/rcmdshlib?branch=master)
 
 Call `R CMD SHLIB` from R
+
+This is _not_ intended to be used like csnippets, rcpp inline or `Rcpp::evalCpp`.  It is primarily intended to be usd by packages that need to dynamically create shared libraries to load into R.  It is currently used in [`dde`](https://github.com/richfitz/dde), in the documentation.

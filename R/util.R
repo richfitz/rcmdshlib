@@ -43,3 +43,12 @@ ends_with <- function(string, end) {
   len <- nchar(string)
   substr(string, len - nchar(end) + 1L, len) == end
 }
+
+system3 <- function(command, args) {
+  res <- suppressWarnings(system2(command, args, stdout = TRUE, stderr = TRUE))
+  code <- attr(res, "status") %||% 0
+  attr(res, "status") <- NULL
+  list(success = code == 0,
+       code = code,
+       output = res)
+}

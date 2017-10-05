@@ -54,21 +54,47 @@ colour will be used where support is detected by
 \code{crayon::has_color()}}
 }
 \value{
-Invisibly, A list with three elements: \code{success} - a
+Invisibly, A list with four elements: \code{success} - a
   logical indicating if the command was successful (this can only
   be \code{FALSE} if \code{stop_on_error} is \code{FALSE}),
   \code{output} - an object of class \code{compiler_output}
-  containing compiler output and \code{dll} - the path to the
-  created shared library, or \code{NA_character_} if the command
-  failed.  If the command changed directory then the normalized
-  (and therefore absolute) path to the dll is returned.
+  containing compiler output, \code{dll} - the path to the created
+  shared library, or \code{NA_character_} if the command failed,
+  and \code{base} - the dll name without leading path or extension
+  (suitable to use as the \code{PACKAGE} argument to
+  \code{.Call}).  If the command changed directory then the
+  normalized (and therefore absolute) path to the dll is returned.
 }
 \description{
 Compile a shared library using \code{R CMD SHLIB}.  Options exist
 for converting the compiler output to R messages, warnings and
 errors.
 }
+\examples{
+# A small piece of C code saved as add.c within a temporary directory:
+txt <- c("#include <R.h>",
+        "#include <Rinternals.h>",
+        "SEXP add2(SEXP a, SEXP b) {",
+        "  return ScalarReal(REAL(a)[0] + REAL(b)[0]);",
+        "}")
+path <- tempfile()
+dir.create(path)
+filename <- file.path(path, "add.c")
+writeLines(txt, filename)
+
+# Compile the object:
+res <- rcmdshlib::shlib(filename)
+res
+
+# Load it into R:
+dyn.load(res$dll)
+
+# And call it
+.Call("add2", pi, 1, PACKAGE = res$base)
+# Cleanup
+dyn.unload(res$dll)
+unlink(path, recursive = TRUE)
+}
 \author{
 Rich FitzJohn
 }
-
